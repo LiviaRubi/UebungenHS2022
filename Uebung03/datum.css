@@ -1,0 +1,8 @@
+#clock, #date {
+    text-align: center;
+    padding: 5%;
+    font-size: 30px;
+    color: black;
+    letter-spacing: 7px;
+    font-family: Arial, Helvetica, sans-serif;
+}
