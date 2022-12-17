@@ -15,6 +15,8 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [lat, setLatitude] = useState(47.536);
+  const [lng, setLontigude] = useState(7.643);
   const [position, setPosition] = useState([47.536, 7.643]);
 
   
@@ -50,8 +52,8 @@ function App() {
   console.log(transform);
 //-------------------Umrechnen (für Button "Calculate Coordinates")---------------------
 function umrechnen() {
-  var url = `http://geodesy.geo.admin.ch/reframe/wgs84tolv95?easting=7&northing=47&format=json`;
-  //var url = `https://vm13.sourcelab.ch/antipodes?lat=${position[1]}&lng=${position[0]}` 
+  //var url = `http://geodesy.geo.admin.ch/reframe/wgs84tolv95?easting=7&northing=47&format=json`;
+  var url = `https://vm13.sourcelab.ch/antipodes?lat=7&lng=47` 
   
 setLoading(true);
   axios
@@ -133,10 +135,10 @@ console.log(posnew);
             <Button variant="contained" color="secondary" onClick={ () => {Orthofoto() } }>View Orthofoto</Button>
           </Grid>
         </Grid>
-        {posnew && <>
-        <h2>Resultat:</h2>
-        <div>{posnew.easting}</div>
-        <div>{posnew.northing}</div>
+      {posnew && <>
+        <h2>Koordinaten des antipodes:</h2>
+        <div>Breite: {posnew?.geometry.coordinates[0]}</div>
+        <div>Höhe: {posnew?.geometry.coordinates[1]}</div>
         
         </>   
         }
