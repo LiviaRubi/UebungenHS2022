@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import Grid from '@mui/material/Grid';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import { MapContainer, TileLayer, GeoJSON, Marker, Popup } from 'react-leaflet'
+import { AppBar, Toolbar, Grid, Button, TextField, Typography } from '@mui/material';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import 'leaflet/dist/leaflet.css';
 import axios from "axios";
 
-import 'leaflet/dist/leaflet.css';
+//->nur Orthofoto stürzt ab...
+//Buttons in der Mitte?
+//Autoren??
 
 function App() {
   const [data, setData] = useState(null);
@@ -14,14 +15,11 @@ function App() {
   const [posnew, setNew] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
   const [position, setPosition] = useState([47.536, 7.643]);
 
-  //was ist {s} bei tilefile?
-  //position der Karte wird nicht verschoben
-  //zweiter Marker auf Karte -> wieso?
-  //Titeln der Karten
+  const url =`https://vm13.sourcelab.ch/antipodes?lat=${position[0]}&lng=${position[1]}`
 
+//------------------- Karte -------------------------------------------------------------
   useEffect(() => {
     const L = require("leaflet");
     delete L.Icon.Default.prototype._getIconUrl;
@@ -30,182 +28,196 @@ function App() {
     iconUrl: require("leaflet/dist/images/marker-icon.png"),
     shadowUrl: require("leaflet/dist/images/marker-shadow.png")
     });
-    }, []);
-//------Funktion test (für Umrechnung)----------------------------------------
-  function test() {
-    //var url = `http://geodesy.geo.admin.ch/reframe/wgs84tolv95?easting=7&northing=47&format=json`;
-    var url = `https://vm13.sourcelab.ch/antipodes?lat=${position[0]}&lng=${position[1]}` 
-    
-  setLoading(true);
-    axios
-      .get(url)
-      .then((response) => {
-        setTrans(response.data);
-      })
-      .catch((err) => {
-        setError(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }
-   
-  console.log(transform);
-//-------------------Umrechnen (für Button "Calculate Coordinates")---------------------
-function umrechnen() {
-  //var url = `http://geodesy.geo.admin.ch/reframe/wgs84tolv95?easting=7&northing=47&format=json`;
-  var url = `https://vm13.sourcelab.ch/antipodes?lat=${position[0]}&lng=${position[1]}` 
-  
-setLoading(true);
-  axios
-    .get(url)
-    .then((response) => {
-      setNew(response.data);
-    })
-    .catch((err) => {
-      setError(err);
-    })
-    .finally(() => {
-      setLoading(false);
-    });
-}
- 
-console.log(posnew);
-//-----------------Umrechnen (für Button "Calculate Coordinates")-------------
-  function do_download() {
-    // TODO: Parametrisieren
-    //var url = "https://vm1.sourcelab.ch/geodetic/line?startlat=47.5349&startlng=7.6415&endlat=8.9738&endlng=-79.5068&pts=100";
-    var url = `https://vm13.sourcelab.ch/antipodes?lat=${position[0]}&lng=${position[1]}` 
+    },[]);
+
+//-----------------Antipode anzeigen (für Button "View Antipode") ------------------------------------
+  function antipode() {
 
     setLoading(true);
-    axios
-      .get(url)
-      .then((response) => {
-        setData(response.data);
-      })
-      .catch((err) => {
-        setError(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      axios
+        .get(url)
+        .then((response) => {
+          setTrans(response.data);
+        })
+        .catch((err) => {
+          setError(err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+    console.log(transform);
+
+//-------- Koordinaten umrechnen (für Button "Calculate Coordinates") ---------------------
+  function umrechnen() {
+    
+    setLoading(true);
+      axios
+        .get(url)
+        .then((response) => {
+          setNew(response.data);
+        })
+        .catch((err) => {
+          setError(err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+    console.log(posnew);
+
+//------------------- Punkt anzeigen (für Button "View Point") ----------------------------
+  function point() {
+
+    setLoading(true);
+      axios
+        .get(url)
+        .then((response) => {
+          setData(response.data);
+        })
+        .catch((err) => {
+          setError(err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
   }
   console.log(data);
 
-//-----------------Orthofoto ------------------------------------
+//------------------- Orthofoto -----------------------------------------------------------
   function orthofoto() {
-    // TODO: Parametrisieren
-    //var url = "https://vm1.sourcelab.ch/geodetic/line?startlat=47.5349&startlng=7.6415&endlat=8.9738&endlng=-79.5068&pts=100";
-    var url = `https://vm13.sourcelab.ch/antipodes?lat=${position[0]}&lng=${position[1]}` 
 
     setLoading(true);
-    axios
-      .get(url)
-      .then((response) => {
-        setOrtho(response.data);
-      })
-      .catch((err) => {
-        setError(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      axios
+        .get(url)
+        .then((response) => {
+          setOrtho(response.data);
+        })
+        .catch((err) => {
+          setError(err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
   }
   console.log(ortho);
+
+//------------------- Map Position aktualisieren ------------------------------------------
+  function FlyMapTo() {
+
+    const map = useMap()
+    useEffect(() => {
+        map.flyTo(position)
+    },)
+    return null
+  }
+
+  function FlyMapToAntipode() {
+
+    const map = useMap()
+    useEffect(() => {
+        map.flyTo(transform?.geometry.coordinates)
+    },)
+    return null
+}
+
+//----------- Design: GUI (mit Buttons, Textfields und Maps) ------------------------------
   return (
     <>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <TextField label="Breite" variant="filled" defaultValue={position[0]} 
-                       onChange={ (event) => { var lng = position[1]; setPosition([event.target.value, lng]) } }/> 
+      <AppBar position="sticky" sx={{backgroundColor: "black", p:2, display:"grid", gridTemplateColumns: "1fr 1fr 1fr 1fr"}} align="center">
+        <Toolbar align="center">
+          <Grid item xs={12} align="center" sx={{display:'flex', alignItems:"center", justifyContent:"center"}}>
+            <Button variant="outlined" sx={{color: 'white', backgroundColor: 'none', borderColor: 'white', mr:4, gridColumn:1}} onClick={() => {umrechnen()}}>Calculate Coordinates</Button>
+            <Button variant="outlined" sx={{color: 'white', backgroundColor: 'none', borderColor: 'white', mr:4, gridColumn:2}} onClick={ () => {point()}}>View Point</Button>
+            <Button variant="outlined" sx={{color: 'white', backgroundColor: 'none', borderColor: 'white', mr:4, gridColumn:3}} onClick={ () => {antipode()}}>View Antipode</Button>
+            <Button variant="outlined" sx={{color: 'white', backgroundColor: 'none', borderColor: 'white', mr:4, gridColumn:4}} onClick={ () => {orthofoto()}}>View Orthofoto</Button>
           </Grid>
-          <Grid item xs={12}>
-            <TextField label="Länge" variant="outlined" defaultValue={position[1]} 
-                        onChange={ (event) => { var lat = position[0]; setPosition([lat, event.target.value]) } }/>
-          </Grid>
-          <Grid item xs={12}>
-            <Button variant="contained" color="success" onClick={ () => {umrechnen() } }>Calculate Coordinates</Button>
-          </Grid>
-          <Grid item xs={12}>
-            <Button variant="contained" color="warning" onClick={ () => {do_download() } }>View Point</Button>
-          </Grid>
-          <Grid item xs={12}>
-            <Button variant="contained" color="error" onClick={ () => {test() } }>View Antipode</Button>
-          </Grid>
-          <Grid item xs={12}>
-            <Button variant="contained" color="secondary" onClick={ () => {orthofoto() } }>View Orthofoto</Button>
-          </Grid>
-        </Grid>
-      {posnew && <>
-        <h2>Koordinaten des Antipodes:</h2>
-        <div>Breite: {posnew?.geometry.coordinates[0]}</div>
-        <div>Höhe: {posnew?.geometry.coordinates[1]}</div>
-        
-        </>   
-        }
+        </Toolbar>
+      </AppBar>
 
-   
-      {loading && <>
-                     <div>API Aufruf, bitte warten!</div><br/>
-                  </>
+      <Typography variant='h3' align='center' sx={{m:5}}>Antipode</Typography>
+      <Grid container spacing={2} sx={{mb:2}}>
+        <Grid item xs={12} align="center">
+          <TextField label="Breite" variant="outlined" sx={{mr:5}} type={"number"} defaultValue={position[0]} onChange={(event) => {var lng = position[1]; setPosition([event.target.value, lng])}}/> 
+          <TextField label="Länge" variant="outlined" type={"number"} defaultValue={position[1]} onChange={(event) => {var lat = position[0]; setPosition([lat, event.target.value])}}/>
+        </Grid>
+      </Grid>
+
+      {posnew &&
+        <>
+          <Grid align="center" sx={{mt:5}}>
+            <Typography variant='h5' align='center' sx={{mb:1}}>Koordinaten des Antipodes:</Typography>
+            <Typography>Breite: {posnew?.geometry.coordinates[0]}</Typography>
+            <Typography>Länge: {posnew?.geometry.coordinates[1]}</Typography>
+          </Grid>
+        </>
       }
 
-      {error &&   <>
-                     <div>ERROR API Aufruf fehlgeschlagen</div>{console.log(error)}<br/>
-                  </>}
-      {data &&  <>    
-                  <h4 >Position der Ursprungskoordinaten</h4>
-                  <MapContainer center={position} zoom={2} scrollWheelZoom={true}
-                    style={{ height: "400px", width: "48%", float:"left", margin:"10px"}} >
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'/>
-                  <Marker color="green" position={ position } >
-                    <Popup>
-                      {position[0]}<br/>{position[1]}
-                    </Popup>
-                  </Marker>
-                  </MapContainer></>}
-      {transform &&  <>
-                  <h4 >Position der Antipodes</h4>
-                  <MapContainer center={transform?.geometry.coordinates} zoom={2} scrollWheelZoom={true}
-                    style={{ height: "400px", width: "48%", float:"right", margin:"10px"}} >
-                  <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'/>
-                  <GeoJSON data={transform} style={{ weight: 8, opacity: '30%', color: 'green'}}/>
-                  <Marker color="green" position={transform?.geometry.coordinates} >
-                    <Popup>
-                    {posnew?.geometry.coordinates[0]}<br/>{posnew?.geometry.coordinates[1]}
-                    </Popup>
-                  </Marker>
-                  </MapContainer>
-                </>}
-      {ortho &&  <>
-                 <MapContainer center={position} zoom={10} scrollWheelZoom={true}
-                    style={{ height: "400px", width: "48%", float:"left", margin:"10px"}} >
-                  <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-	                attribution="&copy; swisstopo">
-                  </TileLayer>
-                  <GeoJSON data={ortho} style={{ weight: 8, opacity: '30%', color: 'green'}}/>
-                  <Marker color="green" position={ position } >
-                    <Popup>
-                      {position[0]}<br/>{position[1]}
-                    </Popup>
-                  </Marker>
-                  </MapContainer>
-                 <MapContainer center={transform?.geometry.coordinates} zoom={10} scrollWheelZoom={true}
-                    style={{ height: "400px", width: "48%", float:"right", margin:"10px"}} >
-                  <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-	                attribution="&copy; swisstopo">
-                  </TileLayer>
-                  <GeoJSON data={transform} style={{ weight: 8, opacity: '30%', color: 'green'}}/>
-                  <Marker color="green" position={transform?.geometry.coordinates} >
-                    <Popup>
-                    {posnew?.geometry.coordinates[0]}<br/>{posnew?.geometry.coordinates[1]}
-                    </Popup>
-                  </Marker>
-                  </MapContainer>
-                </>}
-  
+      {loading &&
+          <Typography align='center'>API Aufruf, bitte warten!</Typography>
+      }
+
+      {error &&
+        <>
+          <Typography align='center'>ERROR API Aufruf fehlgeschlagen</Typography>{console.log(error)}<br/>
+        </>
+      }
+
+      <Grid sx={{mt:5, ml:1, mr:1, display:"grid", gridTemplateColumns:"48%"}}>
+        {data &&
+          <>
+            <Typography sx={{display:"flex", gridColumn:1, alignItems:"center", justifyContent:"center"}} variant='h5'>Position der Ursprungskoordinaten</Typography>
+          </>
+        }
+
+        {transform &&
+          <Typography sx={{display:"flex", gridColumn:2, alignItems:"center", justifyContent:"center"}} variant='h5'>Position des Antipodes</Typography>
+        }
+      </Grid>
+
+      {data &&
+        <>
+          <MapContainer className="map" center={position} zoom={2} scrollWheelZoom={true} style={{height: "400px", width: "48%", float:"left", margin:"10px"}}>
+            <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'/>
+            <Marker position={ position }>
+              <Popup>{position[0]}<br/>{position[1]}</Popup>
+            </Marker>
+            <FlyMapTo/>
+          </MapContainer>
+        </>
+      }
+
+      {transform &&
+        <>
+          <MapContainer center={transform?.geometry.coordinates} zoom={2} scrollWheelZoom={true} style={{height: "400px", width: "48%", float:"right", margin:"10px"}}>
+            <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'/>
+            <Marker position={transform?.geometry.coordinates}>
+              <Popup>{posnew?.geometry.coordinates[0]}<br/>{posnew?.geometry.coordinates[1]}</Popup>
+            </Marker>
+            <FlyMapToAntipode/>
+          </MapContainer>
+        </>
+      }
+
+      {ortho &&
+        <>
+          <MapContainer center={position} zoom={10} scrollWheelZoom={true} style={{height: "400px", width: "48%", float:"left", margin:"10px"}}>
+            <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" attribution="&copy; swisstopo"/>
+            <Marker position={position}>
+              <Popup>{position[0]}<br/>{position[1]}</Popup>
+            </Marker>
+            <FlyMapTo/>
+          </MapContainer>
+
+          <MapContainer center={transform?.geometry.coordinates} zoom={10} scrollWheelZoom={true} style={{height: "400px", width: "48%", float:"right", margin:"10px"}}>
+            <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" attribution="&copy; swisstopo"/>
+            <Marker position={transform?.geometry.coordinates}>
+              <Popup>{posnew?.geometry.coordinates[0]}<br/>{posnew?.geometry.coordinates[1]}</Popup>
+            </Marker>
+            <FlyMapToAntipode/>
+          </MapContainer>
+        </>
+      }
     </>
   );
 }
