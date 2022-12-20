@@ -17,7 +17,7 @@ function App() {
   const [error, setError] = useState(null);
   const [position, setPosition] = useState([47.536, 7.643]);
 
-  const url =`https://vm13.sourcelab.ch/antipodes?lat=${position[0]}&lng=${position[1]}`
+  const url =`https://vm13.sourcelab.ch/calculateantipode?lat=${position[0]}&lng=${position[1]}`
 
 //--------------------- Karte -------------------------------------------------------------
   useEffect(() => {
