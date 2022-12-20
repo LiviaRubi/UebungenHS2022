@@ -19,7 +19,7 @@ function App() {
 
   const url =`https://vm13.sourcelab.ch/antipodes?lat=${position[0]}&lng=${position[1]}`
 
-//------------------- Karte -------------------------------------------------------------
+//--------------------- Karte -------------------------------------------------------------
   useEffect(() => {
     const L = require("leaflet");
     delete L.Icon.Default.prototype._getIconUrl;
@@ -30,7 +30,7 @@ function App() {
     });
     },[]);
 
-//-----------------Antipode anzeigen (für Button "View Antipode") ------------------------------------
+//--------------Antipode anzeigen (für Button "View Antipode") ----------------------------
   function antipode() {
 
     setLoading(true);
