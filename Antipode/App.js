@@ -4,11 +4,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css';
 import axios from "axios";
 
-//->nur Orthofoto stürzt ab...
-//Buttons in der Mitte?
-//Autoren??
-
 function App() {
+
   const [data, setData] = useState(null);
   const [ortho, setOrtho] = useState(null);
   const [transform, setTrans] = useState(null);
@@ -19,7 +16,20 @@ function App() {
 
   const url =`https://vm13.sourcelab.ch/calculateantipode?lat=${position[0]}&lng=${position[1]}`
 
-//--------------------- Karte -------------------------------------------------------------
+  // Überprüfung auf gültige Koordinatenwerte
+  if (-90 <= position[0] && position[0] <= 90) {
+  } else {
+    alert('Fehler: Breitengrade müssen zwischen -90 und 90 sein.');
+    reload();
+  }
+  
+  if (-180 <= position[1] && position[1] <= 180) {
+  } else {
+    alert('Fehler: Längengrade müssen zwischen -180 und 180 sein.');
+    reload();
+    }
+
+//------------------- Karte -------------------------------------------------------------
   useEffect(() => {
     const L = require("leaflet");
     delete L.Icon.Default.prototype._getIconUrl;
@@ -30,25 +40,7 @@ function App() {
     });
     },[]);
 
-//--------------Antipode anzeigen (für Button "View Antipode") ----------------------------
-  function antipode() {
-
-    setLoading(true);
-      axios
-        .get(url)
-        .then((response) => {
-          setTrans(response.data);
-        })
-        .catch((err) => {
-          setError(err);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
-    console.log(transform);
-
-//-------- Koordinaten umrechnen (für Button "Calculate Coordinates") ---------------------
+//------------------- Koordinaten umrechnen (für Button "Calculate Coordinates") --------
   function umrechnen() {
     
     setLoading(true);
@@ -64,9 +56,8 @@ function App() {
           setLoading(false);
         });
     }
-    console.log(posnew);
 
-//------------------- Punkt anzeigen (für Button "View Point") ----------------------------
+//------------------- Punkt anzeigen (für Button "View Point") -------------------------
   function point() {
 
     setLoading(true);
@@ -82,9 +73,25 @@ function App() {
           setLoading(false);
         });
   }
-  console.log(data);
 
-//------------------- Orthofoto -----------------------------------------------------------
+//------------------- Antipode anzeigen (für Button "View Antipode") --------------------
+function antipode() {
+
+  setLoading(true);
+    axios
+      .get(url)
+      .then((response) => {
+        setTrans(response.data);
+      })
+      .catch((err) => {
+        setError(err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }
+
+//------------------- Orthofoto -------------------------------------------------------
   function orthofoto() {
 
     setLoading(true);
@@ -100,9 +107,8 @@ function App() {
           setLoading(false);
         });
   }
-  console.log(ortho);
 
-//------------------- Map Position aktualisieren ------------------------------------------
+//------------------- Map Position aktualisieren ---------------------------------------
   function FlyMapTo() {
 
     const map = useMap()
@@ -121,16 +127,29 @@ function App() {
     return null
 }
 
-//----------- Design: GUI (mit Buttons, Textfields und Maps) ------------------------------
+function OrthoFlyMapToAntipode() {
+
+  const map = useMap()
+  useEffect(() => {
+      map.flyTo(ortho?.geometry.coordinates)
+  },);
+}
+
+// Seite neu laden, für Reset oder Neue Berechung  
+function reload() {
+  window.location.reload();
+  }
+
+//----------- Design: GUI (mit Buttons, Textfields und Maps) ---------------------------
   return (
     <>
-      <AppBar position="sticky" sx={{backgroundColor: "black", p:2, display:"grid", gridTemplateColumns: "1fr 1fr 1fr 1fr"}} align="center">
-        <Toolbar align="center">
-          <Grid item xs={12} align="center" sx={{display:'flex', alignItems:"center", justifyContent:"center"}}>
-            <Button variant="outlined" sx={{color: 'white', backgroundColor: 'none', borderColor: 'white', mr:4, gridColumn:1}} onClick={() => {umrechnen()}}>Calculate Coordinates</Button>
-            <Button variant="outlined" sx={{color: 'white', backgroundColor: 'none', borderColor: 'white', mr:4, gridColumn:2}} onClick={ () => {point()}}>View Point</Button>
-            <Button variant="outlined" sx={{color: 'white', backgroundColor: 'none', borderColor: 'white', mr:4, gridColumn:3}} onClick={ () => {antipode()}}>View Antipode</Button>
-            <Button variant="outlined" sx={{color: 'white', backgroundColor: 'none', borderColor: 'white', mr:4, gridColumn:4}} onClick={ () => {orthofoto()}}>View Orthofoto</Button>
+      <AppBar position="sticky" sx={{backgroundColor: "black", pt:2}}>
+        <Toolbar sx={{display:'flex', flexWrap:'wrap', flexGrow:1, flexShrink:1, alignItems:"center", justifyContent:"center"}}>
+          <Grid item xs={12} align="center">
+            <Button variant="outlined" sx={{color: 'white', backgroundColor: 'none', borderColor: 'white', mr:4, mb:2}} onClick={() => {umrechnen()}}>Calculate Coordinates</Button>
+            <Button variant="outlined" sx={{color: 'white', backgroundColor: 'none', borderColor: 'white', mr:4, mb:2}} onClick={() => {point()}}>View Point</Button>
+            <Button variant="outlined" sx={{color: 'white', backgroundColor: 'none', borderColor: 'white', mr:4, mb:2}} onClick={() => {antipode()}} >View Antipode</Button>
+            <Button variant="outlined" sx={{color: 'white', backgroundColor: 'none', borderColor: 'white', mr:4, mb:2}} onClick={() => {orthofoto()}}>View Orthofoto</Button>
           </Grid>
         </Toolbar>
       </AppBar>
@@ -165,9 +184,7 @@ function App() {
 
       <Grid sx={{mt:5, ml:1, mr:1, display:"grid", gridTemplateColumns:"48%"}}>
         {data &&
-          <>
-            <Typography sx={{display:"flex", gridColumn:1, alignItems:"center", justifyContent:"center"}} variant='h5'>Position der Ursprungskoordinaten</Typography>
-          </>
+          <Typography sx={{display:"flex", gridColumn:1, alignItems:"center", justifyContent:"center"}} variant='h5'>Position der Ursprungskoordinaten</Typography>
         }
 
         {transform &&
@@ -179,7 +196,7 @@ function App() {
         <>
           <MapContainer className="map" center={position} zoom={2} scrollWheelZoom={true} style={{height: "400px", width: "48%", float:"left", margin:"10px"}}>
             <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'/>
-            <Marker position={ position }>
+            <Marker position={position}>
               <Popup>{position[0]}<br/>{position[1]}</Popup>
             </Marker>
             <FlyMapTo/>
@@ -209,15 +226,21 @@ function App() {
             <FlyMapTo/>
           </MapContainer>
 
-          <MapContainer center={transform?.geometry.coordinates} zoom={10} scrollWheelZoom={true} style={{height: "400px", width: "48%", float:"right", margin:"10px"}}>
+          <MapContainer center={ortho?.geometry.coordinates} zoom={10} scrollWheelZoom={true} style={{height: "400px", width: "48%", float:"right", margin:"10px", marginBottom:"80px"}}>
             <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" attribution="&copy; swisstopo"/>
-            <Marker position={transform?.geometry.coordinates}>
-              <Popup>{posnew?.geometry.coordinates[0]}<br/>{posnew?.geometry.coordinates[1]}</Popup>
+            <Marker position={ortho?.geometry.coordinates}>
+              <Popup>{ortho?.geometry.coordinates[0]}<br/>{ortho?.geometry.coordinates[1]}</Popup>
             </Marker>
-            <FlyMapToAntipode/>
+            <OrthoFlyMapToAntipode/>
           </MapContainer>
         </>
       }
+
+      <AppBar position='fixed' sx={{backgroundColor: 'black', top: 'auto', bottom: 0}}>
+        <Toolbar sx={{display:'flex', alignItems:"center", justifyContent:"center"}}>
+          <Typography>Sara Hauser | Martina Meyer | Livia Rubi</Typography>
+        </Toolbar>
+      </AppBar>
     </>
   );
 }
